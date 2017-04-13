@@ -1,7 +1,0 @@
-APT
-{  
-    ExtractTemplates  
-    {    
-        TempDir "/var/local/tmp";
-    };
-};

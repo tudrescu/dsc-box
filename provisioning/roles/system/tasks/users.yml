@@ -1,9 +1,0 @@
----
-
-- name: Umask and Groups per User
-  copy:
-    src:   etc/login.defs
-    dest:  /etc/login.defs
-    mode:  0644
-    force: yes
-    backup: yes  
