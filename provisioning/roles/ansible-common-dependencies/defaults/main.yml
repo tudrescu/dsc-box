@@ -1,0 +1,27 @@
+---
+# Common Dependencies Variables
+
+apt_cache_valid_time: 10                # seconds between "apt-get update" calls.
+validate_apt_certificates: "no"         # no certificate validation for APT get key tasks
+
+common_apt_dependencies:
+  - 'htop'
+  - 'ntp'
+  - 'zip'
+  - 'unzip'
+  - 'git'
+  - 'subversion'
+  - 'curl'
+  - 'wget'
+  - 'jq'
+  - 'pv'
+  - 'xmlstarlet'
+  - 'tmux'
+  - 'python-pycurl'
+  - 'python-apt'
+  - 'python-pip'
+  - 'python-minimal'
+  - 'aptitude'
+  - 'ca-certificates'
+
+selected_timezone: "Europe/Berlin"

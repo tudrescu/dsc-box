@@ -1,0 +1,33 @@
+---
+
+filebeat_version: "latest"
+
+elk_version_lock: false                                           # lock version
+
+# Repo
+elasticsearch_branch: "5.x"
+elasticsearch_debian_repo: "deb https://artifacts.elastic.co/packages/{{ elasticsearch_branch }}/apt stable main"
+elasticsearch_repo_key: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+elasticsearch_apt_source_list: "/etc/apt/sources.list.d/elastic-{{ elasticsearch_branch }}.list"
+
+elasticsearch_api_host: localhost
+elasticsearch_api_port: 9200
+
+# Service
+filebeat_service_state: started
+filebeat_service_enabled: yes
+
+# Filebeat configuration -------------------------------------------------------
+
+filebeat_config_modules: |
+  filebeat.modules:
+  - module: mysql
+    error:
+       var.paths: [ '/var/log/mysql/error.log*' ]
+    slowlog:
+       var.paths: [ '/var/log/mysql/mysql-slow.log*' ]
+
+
+filebeat_config_output: |
+  output.elasticsearch:
+    hosts: [ 'localhost:9200' ]

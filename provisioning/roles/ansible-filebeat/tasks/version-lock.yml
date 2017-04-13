@@ -1,0 +1,6 @@
+---
+
+- name: Hold filebeat version
+  command: apt-mark hold filebeat
+  register: hold_filebeat_result
+  changed_when: "hold_filebeat_result.stdout != 'filebeat was already set on hold.'"

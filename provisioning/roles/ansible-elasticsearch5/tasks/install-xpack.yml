@@ -1,0 +1,60 @@
+---
+
+- name: Get installed version of elasticsearch
+  action: >
+    shell dpkg -s elasticsearch | grep ^Version | cut -d: -f2 | tr -d ' '
+  register: elasticsearch_version
+
+
+- debug: msg="{{ elasticsearch_version.stdout }}"
+
+
+- name: Build X-Pack download link
+  set_fact:
+    xpack_url: "{{ xpack_repo_url}}/{{xpack_name}}-{{ elasticsearch_version.stdout }}.zip"
+
+
+- name: Removing X-Pack if installed
+  action: >
+      shell bin/elasticsearch-plugin remove {{ xpack_name }}
+      chdir={{ elasticsearch_home_dir }}
+  when: install_xpack == 'true'
+  ignore_errors: yes
+
+
+- name: Installing X-Pack directly
+  action: >
+      shell bin/elasticsearch-plugin install {{ xpack_name }}
+      chdir={{ elasticsearch_home_dir }}
+  when: (java_useproxy == 'false' or not java_useproxy) and (install_xpack == "true")
+  ignore_errors: yes
+
+
+# Download Plugins if behind proxy. elasticsearch-plugin command appears not to work well with proxies
+- name: Download X-Pack
+  get_url: >
+    url="{{ xpack_url }}"
+    dest="/tmp/{{ xpack_name }}.zip"
+    validate_certs={{ validate_apt_certificates }}
+  ignore_errors: yes
+  environment: "{{ proxy_env }}"
+  when: (xpack_url is defined) and (java_useproxy == "true" or java_useproxy) and (install_xpack == "true")
+
+
+- name: Installing X-Pack from local file
+  action: >
+      shell bin/elasticsearch-plugin install file:///tmp/{{ xpack_name }}.zip --batch --silent
+      chdir={{ elasticsearch_home_dir }}
+  ignore_errors: yes
+  when: (xpack_url is defined) and (java_useproxy == "true" or java_useproxy) and (install_xpack == "true")
+  notify: Restart Elasticsearch
+
+
+# Fix permission for x-pack plugin directory
+- name: Set Plugin Directory Permissions
+  file: >
+    path="{{ elasticsearch_plugin_dir }}"
+    state=directory
+    owner={{ elasticsearch_user }}
+    group={{ elasticsearch_group }}
+    recurse=yes

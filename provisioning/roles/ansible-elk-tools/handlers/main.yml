@@ -1,0 +1,14 @@
+---
+
+# # systemd
+# - name: restart elastic-cerebro
+#   systemd:
+#     state: restarted
+#     daemon_reload: yes
+#     name: cerebro
+
+# initd
+- name: restart cerebro
+  service: >
+    name=cerebro
+    state=restarted

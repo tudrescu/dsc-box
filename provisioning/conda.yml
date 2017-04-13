@@ -1,0 +1,11 @@
+---
+
+##########################
+# Anaconda3 install      #
+##########################
+- hosts: all
+  become: true
+  become_method: 'sudo'
+  tags: conda
+  roles:
+    - ansible-conda

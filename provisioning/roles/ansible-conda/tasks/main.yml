@@ -1,0 +1,16 @@
+---
+# Anaconda installation
+
+- include: extra-dependencies.yml
+
+- include: install-latex.yml
+
+- include: install-conda.yml
+
+- include: install-pip-dependencies.yml
+
+- include: install-extra-nbextensions.yml
+
+- include: install-pysvn.yml
+
+- include: start-jupyter.yml

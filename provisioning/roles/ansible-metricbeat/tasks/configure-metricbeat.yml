@@ -1,0 +1,44 @@
+---
+
+- name: copy metricbeat configuration
+  template:
+    src: metricbeat.yml.j2
+    dest: /etc/metricbeat/metricbeat.yml
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart metricbeat
+
+
+- name: Validate metricbeat configuration
+  shell: /usr/bin/metricbeat.sh -c /etc/metricbeat/metricbeat.yml -configtest
+  register: metricbeat_validation
+
+
+- fail: msg="metricbeat configuration invalid!"
+  when: metricbeat_validation.stdout != "Config OK"
+
+
+- name: Wait for elasticsearch to startup
+  wait_for: >
+      host={{ elasticsearch_api_host }}
+      port={{ elasticsearch_api_port }}
+      delay=5
+      connect_timeout=1
+
+
+- name: Downloads Dashboards
+  shell: /usr/share/metricbeat/scripts/import_dashboards -es http://localhost:9200 -beat metricbeat
+  environment:
+    "{{ proxy_env }}"
+  notify: restart metricbeat
+
+
+- name: start and enable metricbeat
+  service: >
+    name=metricbeat
+    state={{ metricbeat_service_state }}
+    enabled={{ metricbeat_service_enabled }}
+
+
+- meta: flush_handlers

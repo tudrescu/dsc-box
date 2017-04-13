@@ -1,0 +1,7 @@
+---
+
+- name: Prettify motd
+  copy:
+    src:   etc/motd.tail
+    dest:  /etc/motd
+    mode:  0644

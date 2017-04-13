@@ -1,0 +1,29 @@
+---
+
+# install Oracle Java
+- name: Update Java Apt repositories
+  apt_repository: >
+      repo={{ item }}
+      state=present
+      update_cache=yes
+      validate_certs={{ validate_apt_certificates }}
+  with_items: "{{ custom_apt_repos }}"
+  environment: "{{ proxy_env }}"
+
+- name: Accept Java 8 License
+  debconf: >
+      name={{ item }}
+      question='shared/accepted-oracle-license-v1-1'
+      value='true'
+      vtype='select'
+  when: install_oracle_java == "true"
+  with_items: "{{ java_apt_packages }}"
+
+# Install dependencies with/without proxy
+- name: Install Oracle Java
+  apt: >
+      pkg={{ item }}
+      state=present
+  environment: "{{ proxy_env }}"
+  when: install_oracle_java == "true"
+  with_items: "{{ java_apt_packages }}"

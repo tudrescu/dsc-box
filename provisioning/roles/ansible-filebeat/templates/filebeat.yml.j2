@@ -1,0 +1,14 @@
+{{ ansible_managed | comment('plain', prefix='#################################', postfix='#################################') }}
+
+{% if filebeat_config_modules %}
+## Modules
+{{ filebeat_config_modules }}
+{% endif %}
+
+
+## Log prospectors
+
+## Output configuration
+{{ filebeat_config_output }}
+
+## General configuration

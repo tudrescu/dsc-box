@@ -1,0 +1,75 @@
+# Vagrant specific variables
+vm_cpus: "2"
+vm_memory: "4096"
+
+vm_base_box: "aop"
+vm_base_box_url: "http://persephone.abm-local.de:4300/vagrant/aop/metadata.json"
+vm_base_box_version: "1.4.0"
+
+install_vagrant_plugins: true      # try to install vagrant plugins automatically
+                                   # Bug: Ubuntu 16.04 can not use the vagrant-proxyconf plugin.
+                                   # Disable automatic plugin installation.
+
+vbguest_auto_update: false         # update the Virtual Guest Box Additions automatically.
+                                   # Bug: Sometimes the version is incorrectly reported causing
+                                   # an upgrade each time the VM is powered up.
+                                   # Disable auto update if that is the case.
+
+add_virtual_disk: false            # only required if building box from scratch
+
+# Variables to pass to bootstrap script
+use_proxy: true
+
+# Defaults to ENV['http_proxy'], ENV['https_proxy'], ENV['no_proxy'] if not explicitly specified
+#
+# config_proxy_http: "http://proxy.abm-local.de:800"
+# config_proxy_https: "http://proxy.abm-local.de:800"
+# config_no_proxy: "localhost,127.0.0.1,.abm-local.de"
+
+
+# Port mapping Guest <-> Host
+vm_forwarded_ports:
+    - { guest: 443,  host: 40443, description: "Apache2 https service" }
+    - { guest: 3306, host: 43306, description: "MySQL port" }
+    - { guest: 9999, host: 9999, description: "JMX" }
+    - { guest: 18888, host: 18888, description: "Jolokia port" }
+    - { guest: 9001, host: 49001, description: "Frontail - log streaming in browser" }
+    # - { guest: 80, host: 40080, description: "Apache2 http service"}
+
+
+# Synced Folders Host <-> Guest
+vm_synced_folders:
+#    - { host_path: "../sql_dumps", guest_path: "/vagrant/data/sql_dumps" }
+
+
+# Provisioning is split into several steps.
+# 'ondemand' provisioners are never run automatically and must be specified
+# on the command line
+#
+#    vagrant reload --provision-with "ondemand-provisioner"
+#
+# All other provisioners are run once when vagrant up/destroy are called.
+vm_provisioners:
+
+    - name: "bootstrap-provisioner"                   # reconfigure base box
+      type: "bootstrap"
+      main_playbook: "deploy.yml"
+      ansible_tags:
+           - apache-reconfiguration
+
+
+    # aop deploy provisioner
+    - name: "ondemand-provisioner"
+      type: "ondemand"
+      main_playbook: "deploy.yml"
+      ansible_tags:
+           - aop-deployment                           # Actual AOP deployment
+
+
+# Overwrite defaults in Ansible roles. The variable will be passed on to all
+# 'bootstrap' and 'ondemand' provisioners defined above
+# For a list of available defaults, see  ./provisioning/roles/ROLE_NAME/defaults/main.yml
+# Overwrite values by appending
+#     - prop_name : prop_value
+# below
+ansible_extra_vars:

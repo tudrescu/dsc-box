@@ -1,0 +1,12 @@
+---
+
+#########################
+# Nodejs                #
+#########################
+- hosts: all
+  gather_facts: True
+  become: true
+  become_method: 'sudo'
+  tags: nodejs
+  roles:
+    - nodejs

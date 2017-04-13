@@ -1,0 +1,16 @@
+---
+
+# just for reference, are overwritten by the bootstrap script
+
+java_useproxy: "true"
+
+java_proxy_port: 800
+java_proxy_host: proxy.example.com
+java_proxy_login: ""
+java_proxy_password: ""
+java_no_proxy_host: "localhost|127.0.0.1|*.example.com"
+
+proxy_env:
+  http_proxy:  "http://proxy.example.com:800"
+  https_proxy: "http://proxy.example.com:800"
+  no_proxy:    "localhost, 127.0.0.1, .example.com"

@@ -1,0 +1,26 @@
+---
+
+
+- name: Add jupyter configuration directory
+  file: >
+    path="/root/.jupyter"
+    state=directory
+    owner=root
+    group=root
+    recurse=yes
+
+
+- name: Add configuration
+  template: >
+    src="jupyter_notebook_config.py.j2"
+    dest="/root/.jupyter/jupyter_notebook_config.py"
+    mode=0640
+
+
+- name: Start Jupyter on VM start
+  template: >
+    src="rc.local.j2"
+    dest=/etc/rc.local
+    owner=root
+    group=root
+    mode=0755

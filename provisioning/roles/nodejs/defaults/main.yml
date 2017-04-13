@@ -1,0 +1,32 @@
+---
+
+node_key_search_url: "https://keyserver.ubuntu.com/pks/lookup?op=get&fingerprint=on&search=0x1655A0AB68576280"
+node_key_id: "68576280"
+
+# Version numbers from Nodesource: https://github.com/nodesource/distributions
+nodejs_version: "6.x"
+
+distribution_release: "trusty"
+
+nodejs_install_npm_user: "root"
+
+# The directory for global installations.
+npm_config_prefix: "/usr/local/lib/npm"
+
+# Set to true to suppress the UID/GID switching when running package scripts. If set explicitly to false, then installing as a non-root user will fail.
+npm_config_unsafe_perm: "false"
+
+# Define a list of global packages to be installed with NPM.
+nodejs_npm_global_packages:
+#  # Install a specific version of a package.
+#  - name: jslint
+#    version: 0.9.3
+#  # Install the latest stable release of a package.
+  - name: frontail
+  - name: forever
+  - name: bower
+
+npm_env:
+  NPM_CONFIG_PREFIX: "{{ npm_config_prefix }}"
+  NODE_PATH: "{{ npm_config_prefix }}/lib/node_modules"
+  NPM_CONFIG_UNSAFE_PERM: "{{ npm_config_unsafe_perm }}"

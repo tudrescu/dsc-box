@@ -1,0 +1,134 @@
+# Vagrant specific variables
+vm_cpus: "4"
+vm_memory: "8192"
+
+vm_base_box: "ubuntu/trusty64"
+
+install_vagrant_plugins: true      # try to install vagrant plugins automatically
+                                   # Bug: Ubuntu 16.04 can not use the vagrant-proxyconf plugin.
+                                   # Disable automatic plugin installation.
+
+vbguest_auto_update: false         # update the Virtual Guest Box Additions automatically.
+                                   # Bug: Sometimes the version is incorrectly reported causing
+                                   # an upgrade each time the VM is powered up.
+                                   # Disable auto update if that is the case.
+
+add_virtual_disk: true             # only required if building box from scratch
+virtual_disk_size: 50              # size of LVM
+
+# Variables to pass to bootstrap script
+use_proxy: true
+
+# Defaults to ENV['http_proxy'], ENV['https_proxy'], ENV['no_proxy'] if not explicitly specified
+#
+# config_proxy_http: "http://proxy.example.com:800"
+# config_proxy_https: "http://proxy.example.com:800"
+# config_no_proxy: "localhost,127.0.0.1,.example.com"
+
+
+# Port mapping Guest <-> Host
+vm_forwarded_ports:
+    - { guest: 443, host: 40443, description: "Apache2 https service" }
+    - { guest: 9200, host: 29200, description: "Elasticsearch http port" }
+    - { guest: 5601, host: 25601, description: "Kibana" }
+    - { guest: 9002, host: 29002, description: "Cerebro - ELK Monitoring" }
+    - { guest: 8888, host: 8888, description: "Jupyter" }
+    # - { guest: 80, host: 40080, description: "Apache2 http service"}
+
+
+# Synced Folders Host <-> Guest
+vm_synced_folders:
+#    - { host_path: "../sql_dumps", guest_path: "/vagrant/data/sql_dumps" }
+
+
+# Provisioning is split into several steps.
+# 'ondemand' provisioners are never run automatically and must be specified
+# on the command line
+#
+#    vagrant reload --provision-with "ondemand-provisioner"
+#
+# All other provisioners are run once when vagrant up/destroy are called.
+vm_provisioners:
+
+    # partition extra virtual disk
+    - name: "partitioning-provisioner"
+      type: "shell"
+      path: "scripts/partition-vdi.sh"
+
+
+    # pre-reboot provisioner
+    - name: "pre-reboot-provisioner"
+      type: "bootstrap"
+      main_playbook: "main.yml"
+      ansible_tags:
+           - common                                   # common dependencies
+           - filesystem                               # LVM partitioning
+           - system                                   # System Hardening
+
+
+    # reboot vm
+    - name: "reboot-provisioner"
+      type: "unix_reboot"
+
+
+    # post-reboot provisioner
+    - name: "post-reboot-provisioner"
+      type: "bootstrap"
+      main_playbook: "main.yml"
+      ansible_tags:
+           - dbserver                                 # Percona, db users, db permissions
+           - java                                     # Oracle Java
+           - maven                                    # Maven installation
+
+
+    # extra-tools provisioner
+    - name: "extra-tools-provisioner"
+      type: "bootstrap"
+      main_playbook: "tools.yml"
+      ansible_tags:
+           - nodejs                                    # install nodejs, forever, frontail
+
+
+    # ELK 5.x stack provisioner
+    - name: "elk-provisioner"
+      type: "bootstrap"
+      main_playbook: "elk.yml"
+      ansible_tags:
+           - elasticsearch
+           - kibana
+           - logstash
+           - elk-tools                                 # Cerebro, Curator
+
+
+    # Beats provisioner
+    - name: "beats-provisioner"
+      type: "bootstrap"
+      main_playbook: "beats.yml"
+      ansible_tags:
+            - metricbeat
+            - filebeat
+
+
+    # Anaconda3
+    - name: "conda-provisioner"
+      type: "bootstrap"
+      main_playbook: "conda.yml"
+      ansible_tags:
+           - conda
+
+
+    # minimize box provisioner
+    - name: "box-packaging-provisioner"
+      type: "shell"
+      path: "scripts/minimize-box.sh"
+
+
+
+# Overwrite defaults in Ansible roles. The variable will be passed on to all
+# 'bootstrap' and 'ondemand' provisioners defined above
+# For a list of available defaults, see  ./provisioning/roles/ROLE_NAME/defaults/main.yml
+# Overwrite values by appending
+#     - prop_name : prop_value
+# below
+ansible_extra_vars:
+   - lvm_profile: 'big'

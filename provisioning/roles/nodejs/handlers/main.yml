@@ -1,0 +1,6 @@
+---
+
+- name: Restart Frontail
+  service: >
+    name=frontail
+    state=restarted  

@@ -1,0 +1,71 @@
+---
+
+- name: Download pysvn
+  get_url: >
+    url="{{ tigris_pysvn_url }}/{{ pysvn_name }}-{{ pysvn_version }}.tar.gz"
+    dest="/tmp/{{ pysvn_name }}-{{ pysvn_version }}.tar.gz"
+    validate_certs="{{ validate_apt_certificates }}"
+  become: yes
+  become_user: "{{ conda_user }}"
+  environment: "{{ proxy_env }}"
+
+# Add directories
+- file: >
+    path="/tmp/{{ pysvn_name }}"
+    state=directory
+    owner="{{ conda_user }}"
+    group="{{ conda_group }}"
+    recurse=yes
+
+- unarchive: src="/tmp/{{ pysvn_name }}-{{ pysvn_version }}.tar.gz" dest="/tmp"
+  become: yes
+  become_user: "{{ conda_user }}"
+
+- name: compile pysvn
+  action: >
+      shell {{conda_dir}}/bin/python setup.py configure \
+              --svn-inc-dir={{ conda_dir }}/include/subversion-1 \
+              --svn-lib-dir={{ conda_dir }}/lib \
+              --apr-lib-dir={{ conda_dir }}/lib \
+              --apr-inc-dir={{ conda_dir }}/include/apr-1/  \
+              --apu-inc-dir={{ conda_dir }}/include/apr-1/
+      chdir="/tmp/{{ pysvn_name }}-{{ pysvn_version }}/Source"
+  become: yes
+  become_user: "{{ conda_user }}"
+
+- name: make pysvn
+  action: >
+      shell "make"
+      chdir="/tmp/{{ pysvn_name }}-{{ pysvn_version }}/Source"
+  become: yes
+  become_user: "{{ conda_user }}"
+
+- name: deploy pysvn library
+  file: >
+     path="{{ conda_dir }}/lib/python3.5/site-packages/pysvn"
+     state=directory
+     owner="{{ conda_user }}"
+     group="{{ conda_group }}"
+     recurse=yes
+
+- name: copy files
+  action: >
+      shell cp pysvn/{{ item }} {{ conda_dir }}/lib/python3.5/site-packages/pysvn
+      chdir="/tmp/{{ pysvn_name }}-{{ pysvn_version }}/Source"
+  with_items:
+    - '__init__.py'
+    - '_pysvn*.so'
+  become: yes
+  become_user: "{{ conda_user }}"
+
+
+#  ldd 'which svn'
+# /opt/conda/bin/python setup.py configure \
+#  --svn-inc-dir=/opt/conda/include/subversion-1/ \
+#  --svn-lib-dir=/opt/conda/lib \
+#  --apr-inc-dir=/opt/conda/include/apr-1/ \
+#  --apu-inc-dir=/opt/conda/include/apr-1/
+
+#    mkdir python-libdir/site-packages/pysvn
+#    cp pysvn/__init__.py python-libdir/site-packages/pysvn
+#    cp pysvn/_pysvn*.so python-libdir/site-packages/pysvn

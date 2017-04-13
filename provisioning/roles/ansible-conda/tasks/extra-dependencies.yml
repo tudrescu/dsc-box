@@ -1,0 +1,9 @@
+---
+
+# Install dependencies
+- name: Install extra dependencies
+  apt: >
+    pkg="{{ item }}"
+    state=present
+  with_items: "{{ extra_apt_dependencies }}"
+  environment: "{{ proxy_env }}"

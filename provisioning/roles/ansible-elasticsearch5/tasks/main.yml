@@ -1,0 +1,68 @@
+---
+# Elasticsearch Ansible Tasks
+
+- include: preconfigure.yml
+
+- include: install-elasticsearch.yml
+  notify: Restart Elasticsearch
+  tags:
+    - install-es
+
+- include: configure-elasticsearch.yml
+  notify: Restart Elasticsearch
+  tags:
+    - install-es
+    - configure-es
+
+- include: install-xpack.yml
+  notify: Restart Elasticsearch
+  when: (install_xpack == "true")
+  tags:
+    - install-xpack
+
+
+# # Install Plugins
+# - include: install-plugins.yml
+#   when: (elasticsearch_plugins is defined)
+#   tags:
+#     - install-es
+#     - install-es-plugins
+
+# # Install Custom Templates
+# - include: custom-templates.yml
+#   when: (elasticsearch_templates is defined)
+
+# # Install Custom Scripts
+# - include: custom-scripts.yml
+#   when: (elasticsearch_scripts is defined)
+
+# # Install custom JARs
+# - include: custom-jars.yml
+#   when: (elasticsearch_custom_jars is defined)
+
+
+# Register Elasticsearch service to start on boot
+- name: Ensure Elasticsearch is started on boot
+  service: >
+    name=elasticsearch
+    enabled={{ elasticsearch_service_startonboot }}
+    state={{ elasticsearch_service_state }}
+
+- name: Restart ES
+  debug: msg="Restarting ES"
+  notify: Restart Elasticsearch
+
+- meta: flush_handlers
+
+- name: Wait for elasticsearch to startup
+  wait_for: >
+      host={{elasticsearch_api_host}}
+      port={{elasticsearch_api_port}}
+      delay=5
+      connect_timeout=1
+
+- name: activate x-pack licence
+  include: activate-xpack-licence.yml
+  when: (install_xpack == "true")
+  tags:
+    - install-xpack

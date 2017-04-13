@@ -1,0 +1,45 @@
+---
+
+##########################
+# Elasticsearch install  #
+##########################
+- hosts: all
+  become: true
+  become_method: 'sudo'
+  tags: elasticsearch
+  roles:
+    - ansible-elasticsearch5
+
+
+##########################
+# Kibana install         #
+##########################
+- hosts: all
+  become: true
+  become_method: 'sudo'
+  tags: kibana
+  roles:
+    - ansible-kibana5
+
+
+##########################
+# Logstash install       #
+##########################
+- hosts: all
+  become: true
+  become_method: 'sudo'
+  tags: logstash
+  roles:
+    - ansible-logstash5
+
+
+#########################
+# Curator, Cerebro      #
+#########################
+- hosts: all
+  gather_facts: True
+  become: true
+  become_method: 'sudo'
+  tags: elk-tools
+  roles:
+    - ansible-elk-tools

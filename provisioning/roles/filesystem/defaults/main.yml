@@ -1,0 +1,31 @@
+---
+
+aop_vg_name: "mymachine"            # VG name
+lvm_pv_id: "/dev/sdb1"              # LVM id
+
+lvm_profile: 'default'
+
+lvm_sizes:
+
+   # aop + elk + conda, 50 GB extra LVM
+   big:
+       lv_opt_size: 8G
+       lv_srv_mysql_size: 8G
+       lv_tmp_size: 2G
+       lv_var_size: 20G
+       lv_var_log_size: 8G
+
+   # only aop, 30 GB extra LVM
+   default:
+       lv_opt_size: 4G
+       lv_srv_mysql_size: 8G
+       lv_tmp_size: 2G
+       lv_var_size: 4G
+       lv_var_log_size: 4G
+
+
+# lv_opt_size: 4G
+# lv_srv_mysql_size: 8G
+# lv_tmp_size: 2G
+# lv_var_size: 4G
+# lv_var_log_size: 4G

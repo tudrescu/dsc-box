@@ -1,0 +1,24 @@
+---
+
+#########################
+# Metricbeat            #
+#########################
+- hosts: all
+  gather_facts: True
+  become: true
+  become_method: 'sudo'
+  tags: metricbeat
+  roles:
+    - ansible-metricbeat
+
+
+#########################
+# Filebeat              #
+#########################
+- hosts: all
+  gather_facts: True
+  become: true
+  become_method: 'sudo'
+  tags: filebeat
+  roles:
+    - ansible-filebeat  

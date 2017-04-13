@@ -1,0 +1,146 @@
+---
+
+#########################
+# Common deps           #
+#########################
+- hosts: all
+  gather_facts: True
+  become: true
+  become_method: 'sudo'
+  tags: common
+  roles:
+    - ansible-common-dependencies
+
+
+#########################
+# LVM partioning        #
+#########################
+- hosts: all
+  gather_facts: True
+  become: true
+  become_method: 'sudo'
+  tags: filesystem
+  roles:
+    - filesystem
+
+
+#########################
+# System Hardening      #
+#########################
+- hosts: all
+  gather_facts: True
+  become: true
+  become_method: 'sudo'
+  tags: system
+  roles:
+    - system
+
+
+#########################
+# Common ABM            #
+#########################
+- hosts: all
+  gather_facts: True
+  become: true
+  become_method: 'sudo'
+  tags: abm-common
+  roles:
+    - common
+
+
+#########################
+# Java                  #
+#########################
+- hosts: all
+  gather_facts: True
+  become: true
+  become_method: 'sudo'
+  tags: java
+  roles:
+    - ansible-java
+
+
+#########################
+# Tomcat 7              #
+#########################
+- hosts: all
+  gather_facts: True
+  become: true
+  become_method: 'sudo'
+  tags: tomcat
+  roles:
+    - tomcat
+
+
+#########################
+# Percona               #
+#########################
+- hosts: all
+  gather_facts: True
+  become: true
+  become_method: 'sudo'
+  tags: dbserver
+  roles:
+    - dbserver
+
+
+#########################
+# Webserver             #
+#########################
+- hosts: all
+  gather_facts: True
+  become: true
+  become_method: 'sudo'
+  tags: webserver
+  roles:
+    - webserver
+
+
+#########################
+# HTTPS                 #
+#########################
+- hosts: all
+  gather_facts: True
+  become: true
+  become_method: 'sudo'
+  tags: https
+  roles:
+    - https
+
+
+#########################
+# Maven                 #
+#########################
+
+- hosts: all
+  gather_facts: True
+  become: true
+  become_method: 'sudo'
+  tags: maven
+  roles:
+    - maven
+
+
+#########################
+# AOP Pre Setup         #
+#########################
+
+- hosts: all
+  gather_facts: True
+  become: true
+  become_method: 'sudo'
+  tags: aop-pre-setup
+  roles:
+    - aop-pre-setup
+
+
+#########################
+# etckeeper             #
+#########################
+- hosts: all
+  gather_facts: True
+  become: true
+  become_method: 'sudo'
+  tags: etckeeper
+  roles:
+    - etckeeper

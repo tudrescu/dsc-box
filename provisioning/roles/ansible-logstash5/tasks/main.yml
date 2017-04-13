@@ -1,0 +1,22 @@
+---
+# Tasks for the ansible-logstash role
+
+- include: preconfigure.yml
+
+- include: install-logstash.yml
+  tags:
+    - install-logstash
+
+- include: install-xpack.yml
+  when: (install_xpack == "true")
+  tags:
+    - install-xpack
+
+- include: install-logstash-plugins.yml
+  tags:
+    - install-logstash-plugins
+
+# - include: logstash-configuration.yml
+#   tags:
+#     - install-logstash
+#     - configure-logstash

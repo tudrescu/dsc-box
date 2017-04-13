@@ -1,0 +1,61 @@
+---
+
+- name: copy filebeat configuration
+  template:
+    src: filebeat.yml.j2
+    dest: /etc/filebeat/filebeat.yml
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart filebeat
+
+
+- name: Validate filebeat configuration
+  shell: /usr/bin/filebeat.sh -c /etc/filebeat/filebeat.yml -configtest
+  register: filebeat_validation
+
+# fix permissions for modules manifest
+- name: fix manifest permissions
+  file:
+    path: "/usr/share/filebeat/module/{{ item }}/manifest.yml"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - mysql/slowlog
+    - mysql/error
+    - nginx/access
+    - nginx/error
+    - system/syslog
+    - apache2/access
+    - apache2/error
+  ignore_errors: True
+
+
+- fail: msg="filebeat configuration invalid!"
+  when: filebeat_validation.stdout != "Config OK"
+
+
+- name: Wait for elasticsearch to startup
+  wait_for: >
+      host={{ elasticsearch_api_host }}
+      port={{ elasticsearch_api_port }}
+      delay=5
+      connect_timeout=1
+
+
+- name: Downloads Dashboards
+  shell: /usr/share/filebeat/scripts/import_dashboards -es http://localhost:9200 -beat filebeat
+  environment:
+    "{{ proxy_env }}"
+  notify: restart filebeat
+
+
+- name: start and enable filebeat
+  service: >
+    name=filebeat
+    state={{ filebeat_service_state }}
+    enabled={{ filebeat_service_enabled }}
+
+
+- meta: flush_handlers

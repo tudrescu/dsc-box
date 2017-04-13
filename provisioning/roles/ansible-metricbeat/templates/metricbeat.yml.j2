@@ -1,0 +1,10 @@
+{{ ansible_managed | comment('plain', prefix='#################################', postfix='#################################') }}
+
+## Log prospectors
+{{ metricbeat_config_modules }}
+
+## Output configuration
+{{ metricbeat_config_output }}
+
+## General configuration
+{{ metricbeat_config_general }}

@@ -1,0 +1,31 @@
+---
+
+- include: preconfigure.yml
+
+- include: install-kibana.yml
+  notify: Restart Kibana
+  tags:
+    - install-kibana
+
+# install X-Pack
+- include: install-xpack.yml
+  when: (install_xpack == "true")
+  notify: Restart Kibana
+  tags:
+     - install-xpack
+
+# deal with community plugins, install via git/bower
+- include: install-community-plugins.yml
+  when: (kibana_community_plugins is defined)
+  notify: Restart Kibana
+  tags:
+    - install-kibana-community-plugins
+
+
+# install community plugins
+# - include: install-plugins.yml
+#   when: (kibana_plugins is defined)
+#   notify: Restart Kibana
+#   tags:
+#     - install-kibana
+#     - install-kibana-plugins

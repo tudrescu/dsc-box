@@ -1,0 +1,14 @@
+---
+
+- name: Copy init script to /etc/init.d/frontail
+  template: >
+    src=frontail_initd.j2
+    dest=/etc/init.d/frontail
+    mode=0755
+  notify: Restart Frontail
+
+- name: Ensure Frontail is started on boot
+  service: >
+    name=frontail
+    enabled=yes
+    state=started

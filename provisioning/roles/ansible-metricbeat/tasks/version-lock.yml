@@ -1,0 +1,6 @@
+---
+
+- name: Hold metricbeat version
+  command: apt-mark hold metricbeat
+  register: hold_metricbeat_result
+  changed_when: "hold_metricbeat_result.stdout != 'metricbeat was already set on hold.'"

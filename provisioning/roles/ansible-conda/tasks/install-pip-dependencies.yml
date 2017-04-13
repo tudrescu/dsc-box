@@ -1,0 +1,8 @@
+---
+
+- name: Install through pip
+  action: >
+      shell {{conda_dir}}/bin/pip install {{ pip_packages | join(" ") }}
+  become: yes
+  become_user: "{{ conda_user }}"
+  environment: "{{ proxy_env }}"

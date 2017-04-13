@@ -1,0 +1,37 @@
+---
+
+# # install curator for index managenemt
+# - name: Install Curator
+#   pip: >
+#     name=elasticsearch-curator
+#     version="{{ curator_version }}"
+#     state=present
+#   environment: "{{ proxy_env }}"
+
+# Add repo and install Elasticsearch
+- name: Add Elasticsearch APT Key
+  apt_key: >
+      url="{{ curator_repo_key }}"
+      state=present
+      validate_certs={{ validate_apt_certificates }}
+  environment:
+    "{{ proxy_env }}"
+
+
+- name: Add Curator Debian repository
+  shell: echo "{{ curator_debian_repo }}" | sudo tee "{{ curator_apt_source_list }}"
+
+
+- name: Install Curator
+  apt: >
+    name="{{ curator_package_name }}"
+    update_cache=yes
+    state="{{ curator_version }}"
+  environment:
+    "{{ proxy_env }}"
+
+
+# add version lock
+- name: Include version lock for ELK Stack
+  include: version-lock.yml
+  when: elk_version_lock

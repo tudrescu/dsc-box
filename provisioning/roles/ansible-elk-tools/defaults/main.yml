@@ -1,0 +1,32 @@
+---
+
+elk_version_lock: false
+
+# Curator
+curator_package_name: "elasticsearch-curator"
+curator_version: "latest"
+
+curator_branch: 4
+curator_debian_repo: "deb https://packages.elastic.co/curator/{{ curator_branch }}/debian stable main"
+curator_repo_key: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+curator_apt_source_list: "/etc/apt/sources.list.d/curator-{{ curator_branch }}.list"
+
+# Cerebro
+cerebro_repo_url: "https://github.com/lmenezes/cerebro/releases/download/"
+
+cerebro_user: cerebro
+cerebro_group: cerebro
+
+cerebro_version: "0.6.4"
+cerebro_port: 9002
+cerebro_listen_host: "0.0.0.0"
+
+cerebro_home_dir: "/usr/share/cerebro"
+
+cerebro_log_dir: "/var/log/cerebro/"
+
+cerebro_elasticsearch_url: "http://localhost:9200"
+cerebro_elasticsearch_name: "es-ansible"
+
+cerebro_service_startonboot: yes
+cerebro_service_state: started

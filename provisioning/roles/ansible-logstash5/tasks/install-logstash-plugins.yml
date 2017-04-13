@@ -1,0 +1,33 @@
+---
+# Install Logstash plugins
+
+# Loop through logstash_plugins and install them
+- name: Removing Plugins if they exist
+  action: >
+    shell bin/logstash-plugin uninstall "{{ item.name }}"
+    chdir="{{ logstash_home_dir }}"
+  with_items: "{{ logstash_plugins }}"
+  ignore_errors: yes
+
+
+- name: Installing Plugins by Name
+  action: >
+    shell bin/logstash-plugin install "{{ item.name }}"
+    chdir="{{ logstash_home_dir }}"
+  with_items: "{{ logstash_plugins }}"
+  ignore_errors: yes
+  when: java_useproxy == "false" or not java_useproxy
+
+
+- name: Installing Plugins by Name through proxy
+  action: >
+    shell bin/logstash-plugin install {{ item.name }}
+    chdir="{{ logstash_home_dir }}"
+  with_items: "{{ logstash_plugins }}"
+  ignore_errors: yes
+  environment:
+     JRUBY_OPTS: "-J-Dhttp.proxyHost={{ java_proxy_port }} -J-Dhttp.proxyPort={{ java_proxy_port }}"
+     JARS_SKIP: 'true'
+#    "{{ proxy_env }}"
+  when: java_useproxy == "true" or java_useproxy
+  notify: Restart Logstash

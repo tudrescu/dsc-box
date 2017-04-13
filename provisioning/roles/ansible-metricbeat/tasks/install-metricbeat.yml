@@ -1,0 +1,29 @@
+---
+
+# Add repo and install Elasticsearch
+- name: Add Elasticsearch APT Key
+  apt_key: >
+      url="{{ elasticsearch_repo_key }}"
+      state=present
+      validate_certs={{ validate_apt_certificates }}
+  environment:
+    "{{ proxy_env }}"
+
+
+- name: Add Elasticsearch Debian repository
+  shell: echo "{{ elasticsearch_debian_repo }}" | sudo tee "{{ elasticsearch_apt_source_list }}"
+
+
+- name: Install metricbeat
+  apt: >
+      name=metricbeat
+      update_cache=yes
+      state="{{ metricbeat_version }}"
+  environment:
+    "{{ proxy_env }}"
+
+
+# add version lock
+- name: Include version lock for ELK Stack
+  include: version-lock.yml
+  when: elk_version_lock

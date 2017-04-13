@@ -1,0 +1,84 @@
+---
+# defaults file for the ansible-logstash role
+
+elk_version: "latest"                                           # stack version
+
+elk_version_lock: true                                         # lock stack version
+
+
+logstash_branch: "5.x"
+
+logstash_apt_repo: "deb https://artifacts.elastic.co/packages/{{ logstash_branch }}/apt stable main"
+logstash_apt_source_list: "/etc/apt/sources.list.d/elastic-{{ logstash_branch }}.list"
+logstash_repo_key: "http://artifacts.elastic.co/GPG-KEY-elasticsearch"
+
+logstash_initial_heap_size: "256m"
+logstash_max_heap_size: "1g"
+
+logstash_home_dir: "/usr/share/logstash"
+
+logstash_user: logstash
+logstash_group: logstash
+
+
+# logstash.yml options ---------------------------------------------------------
+
+# logstash_node_name: "test"
+logstash_path_data: "/var/lib/logstash"
+logstash_pipeline_workers: 2
+logstash_output_workers: 1
+
+pipeline_batch_size: 125
+pipeline_batch_delay: 5
+
+pipeline_unsafe_shutdown: "false"
+
+logstash_config_dir: "/etc/logstash"
+
+logstash_path_config: "/etc/logstash/conf.d"
+
+config_test_and_exit: "false"
+
+config_reload_automatic: "false"
+config_reload_interval: 3
+
+queue_type: memory
+queue_page_capacity: 250mb
+queue_max_events: 0
+queue_max_bytes: 1024mb
+queue_checkpoint_acks: 1024
+queue_checkpoint_writes: 1024
+queue_checkpoint_interval: 1000
+
+logstash_http_host: "127.0.0.1"
+
+logstash_http_port: "9600-9700"
+
+logstash_path_logs: "/var/log/logstash"
+
+# logstash_path_plugins: []
+
+# X-Pack -----------------------------------------------------------------------
+install_xpack: true
+xpack_monitoring_es_url: "http://localhost:9200"
+
+# xpack_name: "x-pack"
+# xpack_repo_url: "https://artifacts.elastic.co/downloads/packs/x-pack"
+
+
+# Logstash Plugins -------------------------------------------------------------
+logstash_plugins:
+    - { name: 'logstash-filter-prune' }
+    - { name: 'logstash-filter-translate' }
+
+
+# sets LS_USER for the init.d startscript in /etc/default/logstash -------------
+# logstash_defaults: ""
+
+
+# logstash_conf_dir: "/etc/logstash/conf.d"
+# logstash_index_templates_dir: "/etc/logstash/index_templates"
+
+# ------------------------------------------------------------------------------
+logstash_service_startonboot: no
+logstash_service_state: restarted

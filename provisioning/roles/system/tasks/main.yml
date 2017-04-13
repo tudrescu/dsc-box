@@ -1,0 +1,13 @@
+---
+
+- include: hardening.yml
+  tags: system-hardening
+
+- include: users.yml
+  tags: system-hardening
+
+- include: motd.yml
+  tags: motd
+
+# - include: grub.yml
+#   tags: grub

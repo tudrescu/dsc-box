@@ -1,0 +1,83 @@
+---
+
+# Install dependencies
+- name: Install common dependencies
+  apt: >
+     pkg={{ item }}
+     state=present
+  with_items: "{{ common_apt_dependencies }}"
+  environment:
+    "{{ proxy_env }}"
+
+
+- name: Removing Plugins if they exist
+  action: >
+      shell bin/kibana-plugin --remove {{ item.short }}
+      chdir={{ kibana_dir }}
+  with_items: "{{ kibana_community_plugins }}"
+  ignore_errors: yes
+
+
+- name: Checkout community plugins
+  git: >
+    repo="{{ item.giturl }}"
+    dest="{{ kibana_plugins_dir }}/{{ item.short }}"
+    force=yes
+  with_items: "{{ kibana_community_plugins }}"
+  ignore_errors: no
+  environment: "{{ proxy_env }}"
+
+
+- name: Get installed version of Kibana
+  action: >
+    shell dpkg -s kibana | grep ^Version | cut -d: -f2 | tr -d ' '
+  register: kibana_version
+
+
+- debug: msg="{{ kibana_version.stdout }}"
+
+
+- name: change Kibana version in package.json
+  action: >
+     shell jq '. | select({{ item.selector }}) | {{ item.selector }} |="{{ kibana_version.stdout }}"' package.json > package_temp.json
+     chdir="{{ kibana_plugins_dir }}/{{ item.short }}"
+  with_items: "{{ kibana_community_plugins }}"
+
+
+- name: Remove old files
+  file: >
+    path="{{ kibana_plugins_dir }}/{{ item.short }}/package.json"
+    state=absent
+  with_items: "{{ kibana_community_plugins }}"
+
+- name: Move package_temp.json to package.json
+  command: mv "{{ kibana_plugins_dir }}/{{ item.short }}/package_temp.json" "{{ kibana_plugins_dir }}/{{ item.short }}/package.json"
+  with_items: "{{ kibana_community_plugins }}"
+
+
+- name: Run bower and install package
+  action: >
+      shell bower --allow-root install
+      chdir="{{ kibana_plugins_dir }}/{{ item.short }}"
+  with_items: "{{ kibana_community_plugins }}"
+
+
+# Fix Permissions
+- name: Fix permissions for Plugins
+  file: >
+    path="{{ item }}"
+    state=directory
+    owner="{{ kibana_user }}"
+    group="{{ kibana_group }}"
+    recurse=yes
+  with_items:
+    - "{{ kibana_dir }}/optimize"
+    - "{{ kibana_dir }}/plugins"
+
+
+- name: Restart Kibana
+  debug: msg="Restarting Kibana"
+  notify: Restart Kibana
+
+
+- meta: flush_handlers

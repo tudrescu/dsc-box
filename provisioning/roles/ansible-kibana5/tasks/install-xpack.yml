@@ -1,0 +1,72 @@
+---
+
+- name: Get installed version of elasticsearch
+  action: >
+    shell dpkg -s elasticsearch | grep ^Version | cut -d: -f2 | tr -d ' '
+  register: elasticsearch_version
+
+- debug: msg="{{ elasticsearch_version.stdout }}"
+
+
+- name: Build X-Pack download link
+  set_fact:
+    xpack_url: "{{ xpack_repo_url}}/{{xpack_name}}-{{ elasticsearch_version.stdout }}.zip"
+
+
+- name: Removing X-Pack if installed
+  action: >
+      shell bin/kibana-plugin remove {{ xpack_name }}
+      chdir={{ kibana_dir }}
+  when: install_xpack == 'true'
+  ignore_errors: yes
+
+
+- name: Installing X-Pack directly
+  action: >
+      shell bin/kibana-plugin install {{ xpack_name }}
+      chdir={{ kibana_dir }}
+  when: (java_useproxy == 'false' or not java_useproxy) and (install_xpack == "true")
+  ignore_errors: yes
+
+# Download Plugins if behind proxy. kibana-plugin command appears not to work well with proxies
+- name: Download X-Pack
+  get_url: >
+    url="{{ xpack_url }}"
+    dest="/tmp/{{ xpack_name }}.zip"
+    validate_certs={{ validate_apt_certificates }}
+  ignore_errors: yes
+  environment: "{{ proxy_env }}"
+  when: (xpack_url is defined) and (java_useproxy == "true" or java_useproxy) and (install_xpack == "true")
+
+
+- name: Installing X-Pack from local file
+  action: >
+      shell bin/kibana-plugin install file:///tmp/{{ xpack_name }}.zip
+      chdir={{ kibana_dir }}
+  ignore_errors: yes
+  when: (xpack_url is defined) and (java_useproxy == "true" or java_useproxy) and (install_xpack == "true")
+  notify: Restart Kibana
+
+
+# Fix Permissions on Kibana Home
+- name: Fix permissions in Kibana Home
+  file: >
+    path="{{ item }}"
+    state=directory
+    owner="{{ kibana_user }}"
+    group="{{ kibana_group }}"
+    recurse=yes
+  with_items:
+    - "{{ kibana_dir }}/optimize"
+    - "{{ kibana_dir }}/plugins"
+
+
+# Configure directories
+- name: Fix permission for logs
+  file:
+    path: "{{ kibana_log_dir }}"
+    state: directory
+    owner: "{{ kibana_user }}"
+    group: "{{ kibana_group }}"
+    recurse: yes
+  when: kibana_log_dir is defined

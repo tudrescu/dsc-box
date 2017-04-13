@@ -1,0 +1,106 @@
+---
+
+# GPG Keys
+- name: Get Maven GPG Keys
+  get_url: >
+       url=http://www.apache.org/dist/maven/KEYS
+       dest="/tmp/maven_gpg_keys"
+       mode=0600
+       timeout=60
+       force=yes
+  register: mvn_gpg_key
+  changed_when: False
+  environment:
+    "{{ proxy_env }}"
+
+- name: Import Maven GPG public key
+  command: /usr/bin/gpg --import "/tmp/maven_gpg_keys"
+  register: gpg_import
+  changed_when: "'imported' in gpg_import.stderr"
+
+- name: Delete temp file for Maven GPG public key
+  file: >
+    path="/tmp/maven_gpg_keys"
+    state=absent
+  changed_when: False
+
+# Download Maven binary and signature
+- get_url: >
+      url="{{ maven_url }}"
+      dest="/tmp/maven.{{ maven_distribution }}"
+      timeout=60
+  environment:
+    "{{ proxy_env }}"
+
+- name: Get Maven Tarball Signature
+  get_url: >
+      url="{{ maven_url }}.asc"
+      dest="/tmp/maven.{{ maven_distribution }}.asc"
+      mode=0644
+  environment:
+    "{{ proxy_env }}"
+
+- name: Verify Maven Tarball
+  command: /usr/bin/gpg --verify "/tmp/maven.{{ maven_distribution }}.asc" "/tmp/maven.{{ maven_distribution }}"
+  changed_when: False
+
+# deploy Maven
+- file: >
+    path="{{ maven_prefix }}/"
+    state=directory
+
+- unarchive: >
+    copy="no"
+    src="/tmp/maven.{{ maven_distribution }}"
+    dest="{{ maven_prefix }}/"
+
+# cleanup
+- file: >
+    path="/tmp/maven.{{ maven_distribution }}"
+    state=absent
+
+- file: >
+    path="/tmp/maven.{{ maven_distribution }}.asc"
+    state=absent
+
+# fix file permissions
+- name: Ensure Permissions on Maven directory
+  file:
+    path: "{{ maven_dir }}"
+    owner: "{{ maven_user }}"
+    group: "{{ maven_group }}"
+    mode: 0750
+    state: directory
+
+# fix directory permissions
+- name: Make directories readable
+  file:
+    path: "{{ maven_dir }}"
+    mode: u=rwX,g=rX,o=rX
+    recurse: yes
+
+# Maven configuration
+- name: Create symlink maven directory
+  file: >
+    src="{{ maven_dir }}"
+    dest="{{ maven_prefix }}/apache-maven"
+    owner="{{ maven_user }}"
+    group="{{ maven_group }}"
+    state=link
+
+# create .m2 directory
+- file: >
+    path="{{ maven_prefix }}/.m2"
+    owner="{{ maven_user }}"
+    group="{{ maven_group }}"
+    mode=0750
+    state=directory
+
+
+- name: Copy settings.xml
+  copy: >
+    src="settings.xml"
+    dest="{{ maven_prefix }}/.m2/settings.xml"
+    owner="{{ maven_user }}"
+    group="{{ maven_group }}"
+    mode=0644

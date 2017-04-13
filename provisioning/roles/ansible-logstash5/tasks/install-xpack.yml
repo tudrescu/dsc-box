@@ -1,0 +1,45 @@
+---
+
+# - name: Get installed version of elasticsearch
+#   action: >
+#     shell dpkg -s elasticsearch | grep ^Version | cut -d: -f2 | tr -d ' '
+#   register: elasticsearch_version
+#
+#
+# - debug: msg="{{ elasticsearch_version.stdout }}"
+
+
+# - name: Build X-Pack download link
+#   set_fact:
+#     xpack_url: "{{ xpack_repo_url}}/{{xpack_name}}-{{ elasticsearch_version.stdout }}.zip"
+
+
+# Loop through logstash_plugins and install them
+- name: Removing Plugins if they exist
+  action: >
+    shell bin/logstash-plugin uninstall "{{ xpack_name }}"
+    chdir="{{ logstash_home_dir }}"
+  ignore_errors: yes
+  when: (install_xpack == "true")
+
+
+- name: Installing X-Pack by Name
+  action: >
+    shell bin/logstash-plugin install "{{ xpack_name }}"
+    chdir="{{ logstash_home_dir }}"
+  ignore_errors: yes
+  when: (install_xpack == "true") and (java_useproxy == "false" or not java_useproxy)
+  notify: Restart Logstash
+
+
+- name: Installing X-Pack by Name through proxy
+  action: >
+    shell bin/logstash-plugin install "{{ xpack_name }}"
+    chdir="{{ logstash_home_dir }}"
+  ignore_errors: yes
+  environment:
+     JRUBY_OPTS: "-J-Dhttp.proxyHost={{ java_proxy_port }} -J-Dhttp.proxyPort={{ java_proxy_port }}"
+     JARS_SKIP: 'true'
+#    "{{ proxy_env }}"
+  when: (install_xpack == "true") and (java_useproxy == "true" or java_useproxy)
+  notify: Restart Logstash

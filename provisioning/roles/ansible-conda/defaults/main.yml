@@ -1,0 +1,118 @@
+---
+# Anaconda installation
+
+apt_cache_valid_time: 100                # seconds between "apt-get update" calls.
+validate_apt_certificates: "no"          # no certificate validation because for APT get key tasks
+
+conda_user: 'vagrant'                    # use in a Vagrant VM
+conda_group: 'vagrant'
+
+extra_apt_dependencies:
+    - 'build-essential'
+    - 'python-dev'
+    - 'libsm6'
+    - 'pandoc'
+    - 'subversion'
+    - 'xvfb'
+
+latex_apt_dependencies:
+    - 'texlive-latex-base'
+    - 'texlive-latex-extra'
+    - 'texlive-fonts-recommended'
+    - 'texlive-fonts-extra'
+
+conda_dir: "/opt/conda"
+
+# Jupyter rc.local variables
+jupyter_network_listen: 0.0.0.0
+jupyter_port: 8888
+jupyter_notebook_dir: "/vagrant/"
+
+
+continuum_repos: "https://repo.continuum.io"
+
+# miniconda_dir: "miniconda"
+miniconda_dir: "archive"
+
+# conda_name: "Miniconda3"
+conda_name: "Anaconda3"
+
+# conda_version: "latest"
+conda_version: "4.3.1"
+
+miniconda_download_url: "{{ continuum_repos }}/{{ miniconda_dir }}/{{ conda_name }}-{{ conda_version }}-Linux-x86_64.sh"
+# anaconda_download_url: "{{ continuum_repos }}/{{ anaconda_dir }}/{{ anaconda_name }}-{{ anaconda_version }}-Linux-x86_64.sh"
+
+tigris_pysvn_url: 'http://pysvn.barrys-emacs.org/source_kits'
+pysvn_name: 'pysvn'
+pysvn_version: '1.9.2'
+
+conda_packages:
+  - 'bokeh'
+  - 'seaborn'
+  - 'gunicorn'
+  - 'gensim'
+  - 'decorator'
+  - 'luigi'
+  - 'csvkit'
+  - 'apr'
+  - 'svn'
+  - 'git'
+  - 'virtualenv'
+  - 'spacy'
+  - 'pymc'
+  - 'pivottablejs'
+  - 'mysql-connector-python'
+  # - statsmodels
+
+pip_packages:
+  - 'arrow'
+  - 'elasticsearch'
+  - 'ipython-sql'
+  - 'folium'
+  - 'statsmodels==0.8.0rc1'
+  - 'ldap3'
+#  - ansible
+# do not forget to update statsmodels!
+
+extra_nb_extensions:
+  - 'https://github.com/Anaconda-Server/nbbrowserpdf/archive/master.zip'
+
+activate_nbextensions:
+  - 'nbbrowserpdf.install'
+
+# conda_packages:
+#   - notebook
+#   - six
+#   - bokeh
+#   - seaborn
+#   - terminado
+#   - ipython
+#   - pandas
+#   - ipywidgets
+#   - matplotlib
+#   - scipy
+#   - scikit-learn
+#   - scikit-image
+#   - pyzmq
+#   - pytz
+#   - nltk
+#   - gensim
+#   - flask
+#   - gunicorn
+#   - decorator
+#   - luigi
+#   - csvkit
+#   - apr
+#   - statsmodels
+#   - svn
+#   - tornado
+#   - virtualenv
+#   - xz
+#   - spacy
+#   - scrapy
+#   - requests
+#   - pymc
+#   - pivottablejs
+#   - pip
+#   - lxml

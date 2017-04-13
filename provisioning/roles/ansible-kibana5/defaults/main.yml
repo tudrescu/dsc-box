@@ -1,0 +1,73 @@
+---
+# Kibana Ansible defaults
+
+common_apt_dependencies:
+  - 'git'
+  - 'curl'
+  - 'wget'
+  - 'jq'
+
+elk_version: "latest"                                           # stack version
+
+elk_version_lock: true                                         # lock stack version
+
+kibana_group: kibana
+kibana_user: kibana
+
+kibana_dir: "/usr/share/kibana"                                 # Kibana home dir
+kibana_plugins_dir: "{{ kibana_dir }}/plugins"
+
+kibana_host: "0.0.0.0"                                          # Kibana address to bind to
+kibana_port: "5601"                                             # Kibana port
+
+kibana_elasticsearch: "http://localhost:9200"                   # ElasticSearch endpoint
+# kibana_index: ".kibana"                                       # Kibana index in ElasticSearch
+
+kibana_default_app_id: "discover"                               # Default App to Load
+
+# Logging Parameters
+kibana_log_dir: /var/log/kibana
+kibana_log: "{{ kibana_log_dir }}/kibana.log"                   # Kibana log path
+
+# # TODO implement logrotate?
+# kibana_log_rotate_count: 5                      # Log rotation count
+# kibana_log_rotate_interval: daily               # Log rotation interval
+
+# Repositories
+kibana_branch: "5.x"
+kibana_apt_repo: "deb https://artifacts.elastic.co/packages/{{ kibana_branch }}/apt stable main"
+kibana_repo_key: "https://artifacts.elastic.co/GPG-KEY-elasticsearch"
+kibana_apt_source_list: "/etc/apt/sources.list.d/elastic-{{ kibana_branch }}.list"
+
+# X-Pack -----------------------------------------------------------------------
+install_xpack: "true"
+xpack_name: "x-pack"
+xpack_repo_url: "https://artifacts.elastic.co/downloads/packs/x-pack"
+
+# X-Pack options
+xpack_security_enabled: "false"
+xpack_monitoring_enabled: "true"
+xpack_graph_enabled : "true"
+xpack_reporting_enabled: "true"
+
+# plugins_download_url: "https://download.elastic.co"
+# official plugins, hosted by elastic
+kibana_plugins: []
+  # - { short: 'x-pack', name: 'x-pack', url: "{{ xpack_url }}", version: "{{ xpack_version }}", type: 'zip' }
+
+# community plugins, checkout git, change kibana version, bower install
+kibana_community_plugins:
+  - { short: 'kibana-time-plugin', giturl: 'https://github.com/nreese/kibana-time-plugin.git', selector: '.version' }
+  - { short: 'kibana-logbrowser', giturl: 'https://github.com/searchtechnologies/kibana-logbrowser.git', selector: '.kibana.version' }
+
+#   - { short: 'kibana-time-plugin', url: "https://github.com/nreese/kibana-time-plugin/archive/master.zip" }
+# #  - { short: 'vectormap', url: "https://github.com/stormpython/vectormap/archive/master.zip" }
+# #  - { short: 'kibana-html-plugin', url: "https://github.com/raystorm-place/kibana-html-plugin/archive/master.zip" }
+# #  - { short: 'kibi_radar_vis', url: "https://github.com/sirensolutions/kibi_radar_vis/archive/0.1.0.zip" }
+# #  - { short: 'kibi_timeline_vis', url: "https://github.com/sirensolutions/kibi_timeline_vis/raw/0.1.2/target/kibi_timeline_vis-0.1.2.zip" }
+
+# Service Parameters
+kibana_service_startonboot: yes
+kibana_service_state: started
+
+# Security

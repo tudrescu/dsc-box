@@ -1,0 +1,6 @@
+---
+
+- name: Hold elasticsearch-curator version
+  command: apt-mark hold {{ curator_package_name }}
+  register: hold_curator_result
+  changed_when: "hold_curator_result.stdout != '{{ curator_package_name }} was already set on hold.'"

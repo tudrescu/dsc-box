@@ -1,0 +1,83 @@
+---
+
+metricbeat_version: "latest"
+
+elk_version_lock: false                                           # lock version
+
+# Repo
+elasticsearch_branch: "5.x"
+elasticsearch_debian_repo: "deb https://artifacts.elastic.co/packages/{{ elasticsearch_branch }}/apt stable main"
+elasticsearch_repo_key: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+elasticsearch_apt_source_list: "/etc/apt/sources.list.d/elastic-{{ elasticsearch_branch }}.list"
+
+elasticsearch_api_host: localhost
+elasticsearch_api_port: 9200
+
+# Service
+metricbeat_service_state: started
+metricbeat_service_enabled: yes
+
+
+# Metricbeat configuration -----------------------------------------------------
+
+# module configuration
+metricbeat_config_modules: |
+  metricbeat.modules:
+
+    - module: system
+      metricsets:
+
+        # CPU stats
+        - cpu
+
+        # System Load stats
+        - load
+
+        # Per core CPU stats
+        # - core
+
+        # IO stats
+        #- diskio
+
+        # Per filesystem stats
+        # - filesystem
+
+        # File system summary stats
+        - fsstat
+
+        # Memory stats
+        - memory
+
+        # Network stats
+        # - network
+
+        # Per process stats
+        - process
+
+      processes: ['.*']
+      # if true, exports the CPU usage in ticks, together with the percentage values
+      cpu_ticks: true
+      enabled: true
+      period: 1m
+
+      # filters:
+      #   # only the root partition
+      #    - drop_event.when.regexp.mount_point: ^/.+$
+
+
+    - module: mysql
+      metricsets:
+        - status
+      hosts: ["tcp(127.0.0.1:3306)/"]
+      username: root
+      password: myabm
+      enabled: true
+      period: 20s
+
+
+metricbeat_config_output: |
+  output.elasticsearch:
+    hosts: [ 'localhost:9200' ]
+
+metricbeat_config_general: |
+  # nix

@@ -1,0 +1,58 @@
+---
+
+- name: Create Entry in fstab and mount /run/shm noexec
+  mount:
+    name: "/run/shm"
+    src:  "tmpfs"
+    fstype: "tmpfs"
+    opts: "defaults,nodev,nosuid,noexec"
+    passno: "0"
+    state: "mounted"
+
+
+- name: Create Entry in fstab and mount /var/tmp nodev,nosuid,noexec
+  mount:
+    name: "/var/tmp"
+    src:  "/tmp"
+    fstype: "none"
+    opts: "defaults,bind,nodev,nosuid,noexec"
+    passno: "2"
+    state: "mounted"
+
+
+- name: Create Entry in fstab and mount /var/crash nodev,nosuid,noexec
+  mount:
+    name: "/var/crash"
+    src:  "/tmp"
+    fstype: "none"
+    opts: "defaults,bind,nodev,nosuid,noexec"
+    passno: "2"
+    state: "mounted"
+
+
+# - name: APT Extract Directory in /var/local/tmp, because /tmp is mounted noexec
+#   copy:
+#     src:   etc/apt/apt.conf.d/50extracttemplates
+#     dest:  /etc/apt/apt.conf.d/50extracttemplates
+#     mode:  0644
+#     force: yes
+#     backup: yes
+#
+# - name: tmpdir for initramfs-tools, because /tmp is mounted noexec
+#   copy:
+#     src:   etc/initramfs-tools/conf.d/tmpdir
+#     dest:  /etc/initramfs-tools/conf.d/tmpdir
+#     mode:  0644
+#     force: yes
+#     backup: yes
+
+
+- name: Create /var/local/tmp
+  file:
+    path: /var/local/tmp
+    mode: "1755"
+    state: directory
+
+- name: Update initramfs
+  command: "/usr/sbin/update-initramfs -u"
+  changed_when: False

@@ -1,0 +1,7 @@
+---
+
+- include: install-nodejs.yml
+
+- include: configure-npm.yml
+
+- include: frontail-as-service.yml

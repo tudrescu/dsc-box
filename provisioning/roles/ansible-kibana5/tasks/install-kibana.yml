@@ -1,0 +1,76 @@
+---
+
+# Configure user and group
+- name: Configuring Kibana user and group
+  group: name={{ kibana_group }}
+
+
+- user: >
+    name="{{ kibana_user }}"
+    group="{{ kibana_group }}"
+    createhome=no
+
+
+- name: Add Kibana APT Key
+  apt_key: >
+    url="{{ kibana_repo_key }}"
+    state=present
+    validate_certs={{ validate_apt_certificates }}
+  environment: "{{ proxy_env }}"
+
+
+- name: Add Kibana Debian repository
+  shell: echo "{{ kibana_apt_repo }}" | sudo tee "{{ kibana_apt_source_list }}"
+
+
+- name: Install Kibana
+  apt: >
+    name=kibana
+    update_cache=yes
+    state="{{ elk_version }}"
+  environment: "{{ proxy_env }}"
+
+
+# add version lock
+- name: Include version lock for ELK Stack
+  include: version-lock.yml
+  when: elk_version_lock
+
+
+- name: Configure Kibana
+  template: >
+    src=kibana5.yml.j2
+    dest=/etc/kibana/kibana.yml
+    owner="{{ kibana_user }}"
+    group="{{ kibana_group }}"
+    mode=0664
+  notify: Restart Kibana
+
+
+# # Fix Permissions
+# - name: Fix permissions Kibana Home
+#   file: >
+#     path="{{ kibana_dir }}"
+#     state=directory
+#     owner="{{ kibana_user }}"
+#     group="{{ kibana_group }}"
+#     recurse=yes
+
+
+# Configure directories
+- name: Configuring Log directory
+  file: >
+    path="{{ kibana_log_dir }}"
+    state=directory
+    owner="{{ kibana_user }}"
+    group="{{ kibana_group }}"
+    recurse=yes
+  when: kibana_log_dir is defined
+
+
+# Register Kibana service to start on boot
+- name: Ensure Kibana is started on boot
+  service: >
+    name=kibana
+    enabled={{ kibana_service_startonboot }}
+    state={{ kibana_service_state }}

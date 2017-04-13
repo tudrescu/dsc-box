@@ -1,0 +1,95 @@
+---
+# Install Elasticsearch Plugins
+#
+# You will need to define an array called 'elasticsearch_plugins' in your playbook or inventory, such that:
+#
+# elasticsearch_plugins:
+#  - { short: '<short name'>, name: '<plugin name>' or url: '<[optional] plugin url>' }
+#  - ...
+# where if you were to install the plugin via bin/elasticsearch-plugin, you would type:
+#
+# bin/elasticsearch-plugin install <plugin name>
+#
+# or
+#
+# bin/elasticsearch-plugin install <plugin url>
+#
+# To use a proxy set variables
+#
+#          java_proxy_port
+#          java_proxy_host
+
+
+- name: Get installed version of elasticsearch
+  action: >
+    shell dpkg -s elasticsearch | grep ^Version | cut -d: -f2 | tr -d ' '
+  register: elasticsearch_version
+
+- debug: msg="{{ elasticsearch_version.stdout }}"
+
+
+- name: Removing Plugins if they exist
+  action: >
+      shell bin/elasticsearch-plugin remove {{ item.short }}
+      chdir={{ elasticsearch_home_dir }}
+  when: elasticsearch_plugins is defined
+  with_items: "{{ elasticsearch_plugins }}"
+  ignore_errors: yes
+
+
+- name: Installing Plugins by Name
+  action: >
+      shell bin/elasticsearch-plugin install {{ item.name }}
+      chdir={{ elasticsearch_home_dir }}
+  when: (elasticsearch_plugins is defined) and (item.url is not defined) and (java_useproxy == 'false' or not java_useproxy)
+  with_items: "{{ elasticsearch_plugins }}"
+  ignore_errors: yes
+
+
+# Download Plugins if behind proxy. elasticsearch-plugin command appears not to work well with proxies
+- name: Download community plugins
+  get_url: >
+    url={{ item.url }}
+    dest=/tmp/{{ item.short }}.zip
+    validate_certs={{ validate_apt_certificates }}
+  with_items: "{{ elasticsearch_plugins }}"
+  ignore_errors: yes
+  environment: "{{ proxy_env }}"
+  when: (elasticsearch_plugins is defined) and (item.url is defined) and (java_useproxy == "true" or java_useproxy)
+
+
+- name: Installing community plugins by URL when using proxy
+  action: >
+      shell bin/elasticsearch-plugin install file:///tmp/{{ item.short }}.zip --batch --silent
+      chdir={{ elasticsearch_home_dir }}
+  with_items: "{{ elasticsearch_plugins }}"
+  ignore_errors: yes
+  when: (elasticsearch_plugins is defined) and (item.url is defined) and (java_useproxy == "true" or java_useproxy)
+  notify: Restart Elasticsearch
+
+
+# - name: Cleanup downloaded plugins
+#   file: name=//tmp/{{ item.short }}.zip state=absent
+#   with_items: "{{ elasticsearch_plugins }}"
+#   ignore_errors: yes
+#   when: java_useproxy == "true" or java_useproxy
+
+
+# - name: Installing Plugins by Name through Proxy
+#   action: >
+#       shell bin/elasticsearch-plugin install {{ item.name }}
+#       chdir={{ elasticsearch_home_dir }}
+#   when: (elasticsearch_plugins is defined) and (item.url is not defined) and (java_useproxy == 'true' or java_useproxy)
+#   with_items: "{{ elasticsearch_plugins }}"
+#   ignore_errors: yes
+#   environment:
+#     ES_JAVA_OPTS: "-DproxyPort={{ java_proxy_port }} -DproxyHost={{ java_proxy_host }} -Dhttps.proxyPort={{ java_proxy_port }} -Dhttps.proxyHost={{ java_proxy_host }}"
+
+
+- name: Set Plugin Directory Permissions
+  file: >
+    path="{{ elasticsearch_plugin_dir }}"
+    state=directory
+    owner="{{ elasticsearch_user }}"
+    group="{{ elasticsearch_group }}"
+    recurse=yes

@@ -1,0 +1,239 @@
+---
+
+- name: Install lvm2 Package
+  apt:
+    name: lvm2
+    state: present
+  environment:
+    "{{ proxy_env }}"
+
+
+- name: Find real Device-File
+  # The lvg Modul does not function with Links
+  command: "lsblk -d  {{ lvm_pv_id }} -o NAME -n"
+  register: real_lsblk
+  changed_when: False
+
+
+- name: Get Pysical Volume
+  command: "pvdisplay"
+  register: pv_out
+
+
+- name: Create LVM Physical Volume (PV)
+  command: "pvcreate {{ lvm_pv_id }}"
+  when: pv_out.stdout == ""
+
+
+- name: Create Volume Group (VG) {{ aop_vg_name }}
+  lvg:
+    vg: "{{ aop_vg_name }}"
+    pvs: "/dev/{{ real_lsblk.stdout }}"
+  register: aop_vg
+
+
+- name: Get Free Size from VG
+  command: vgs --rows --nosuffix --noheadings --units g -o vg_free {{ aop_vg_name }}
+  register: vg_free
+  changed_when: false
+
+# - set_fact:
+#     lvm_size_set: "{{ ((vg_free.stdout|trim|int) < 35.50) | ternary('small','default') }}"
+
+- debug: msg="{{ lvm_sizes[lvm_profile] }}"
+
+# opt LVM
+- name: Create Logical Volume opt on VG {{ aop_vg_name }}
+  lvol:
+    lv: "opt"
+    # size: "{{ lv_opt_size }}"
+    size: "{{ lvm_sizes[lvm_profile]['lv_opt_size'] }}"
+    vg: "{{ aop_vg_name }}"
+  when: aop_vg|changed
+
+
+- name: Create ext4 Filesystem on LV opt
+  filesystem:
+    fstype: "ext4"
+    opts: "-b 2048 -i 4096 -m 1"
+    dev: "/dev/{{ aop_vg_name }}/opt"
+
+
+- name: Create Entry in fstab and mount opt
+  mount:
+    name: "/opt"
+    src:  "/dev/{{ aop_vg_name }}/opt"
+    fstype: "ext4"
+    opts: "defaults,nodev,nosuid"
+    passno: "2"
+    state: "mounted"
+
+# srv+mysql LVM
+- name: Create Logical Volume srv+mysql on VG {{ aop_vg_name }}
+  lvol:
+    lv: "srv+mysql"
+    # size: "{{ lv_srv_mysql_size }}"
+    size: "{{ lvm_sizes[lvm_profile]['lv_srv_mysql_size'] }}"
+    vg: "{{ aop_vg_name }}"
+  when: aop_vg|changed
+
+
+- name: Create ext4 Filesystem on LV srv+mysql
+  filesystem:
+    fstype: "ext4"
+    dev: "/dev/{{ aop_vg_name }}/srv+mysql"
+
+
+- name: Create Entry in fstab and mount /srv/mysql
+  mount:
+    name: "/srv/mysql"
+    src:  "/dev/{{ aop_vg_name }}/srv+mysql"
+    fstype: "ext4"
+    opts: "defaults,noatime,nodev,nosuid,noexec"
+    passno: "2"
+    state: "mounted"
+
+# var LVM
+- name: Create Logical Volume var on VG {{ aop_vg_name }}
+  lvol:
+    lv: "var"
+    # size: "{{ lv_var_size }}"
+    size: "{{ lvm_sizes[lvm_profile]['lv_var_size'] }}"
+    vg: "{{ aop_vg_name }}"
+  when: aop_vg|changed
+
+
+- name: Create ext4 Filesystem on LV var
+  filesystem:
+    fstype: "ext4"
+    dev: "/dev/{{ aop_vg_name }}/var"
+
+
+- name: Create Entry in fstab and mount temporary on /mnt/var
+  mount:
+    name: "/mnt/var"
+    src:  "/dev/{{ aop_vg_name }}/var"
+    fstype: "ext4"
+    opts: "defaults"
+    passno: "2"
+    state: "mounted"
+  changed_when: False
+
+# var+log LVM
+- name: Create Logical Volume var+log on VG {{ aop_vg_name }}
+  lvol:
+    lv: "var+log"
+    # size: "{{ lv_var_log_size }}"
+    size: "{{ lvm_sizes[lvm_profile]['lv_var_log_size'] }}"
+    vg: "{{ aop_vg_name }}"
+  when: aop_vg|changed
+
+
+- name: Create ext4 Filesystem on LV var+log
+  filesystem:
+    fstype: "ext4"
+    dev: "/dev/{{ aop_vg_name }}/var+log"
+
+
+- name: Create Entry in fstab and mount temporary on /mnt/var/log
+  mount:
+    name: "/mnt/var/log"
+    src:  "/dev/{{ aop_vg_name }}/var+log"
+    fstype: "ext4"
+    opts: "defaults"
+    passno: "2"
+    state: "mounted"
+  changed_when: False
+
+# TODO Skip tmp creation for now!!!!
+# - name: Create Logical Volume tmp on VG {{ aop_vg_name }}
+#   lvol:
+#     lv: "tmp"
+#     size: "{{ lv_tmp_size }}"
+#     vg: "{{ aop_vg_name }}"
+#   when: aop_vg|changed
+#
+# - name: Create ext4 Filesystem on LV tmp
+#   filesystem:
+#     fstype: "ext4"
+#     opts: "-b 2048 -i 4096 -m 1"
+#     dev: "/dev/{{ aop_vg_name }}/tmp"
+#
+# - name: Create Entry in fstab and mount /tmp
+#   mount:
+#     name: "/tmp"
+#     src:  "/dev/{{ aop_vg_name }}/tmp"
+#     fstype: "ext4"
+#     opts: "defaults,nodev,nosuid,noexec"
+#     passno: "2"
+#     state: "mounted"
+#   register: tmp_mount
+#   notify:
+#     - Restart server
+#     - Wait for server to restart
+#
+# - name: Set Attributes of /tmp
+#   file:
+#     path: /tmp
+#     mode: "1777"
+
+- name: rsync current Entries in /var to /mnt/var
+  command: "rsync -av /var/ /mnt/var/ --exclude='lost+found'"
+  no_log: True
+#   when: tmp_mount|changed
+
+- name: Change fstab for /var
+  mount:
+    name: "/var"
+    src:  "/dev/{{ aop_vg_name }}/var"
+    fstype: "ext4"
+    opts: "defaults"
+    passno: "2"
+    state: "present"
+
+
+- name: Change fstab for /var/log
+  mount:
+    name: "/var/log"
+    src:  "/dev/{{ aop_vg_name }}/var+log"
+    fstype: "ext4"
+    opts: "defaults,nodev,nosuid,noexec"
+    passno: "2"
+    state: "present"
+
+
+- name: Umount /mnt/var/log
+  mount:
+    name: "/mnt/var/log"
+    src:  "/dev/{{ aop_vg_name }}/var+log"
+    fstype: "ext4"
+    opts: "defaults"
+    passno: "2"
+    state: "unmounted"
+  changed_when: False
+
+
+- name: Remove Entry in fstab and unmount /mnt/var
+  mount:
+    name: "/mnt/var"
+    src:  "/dev/{{ aop_vg_name }}/var"
+    fstype: "ext4"
+    opts: "defaults"
+    passno: "2"
+    state: "absent"
+  changed_when: False
+
+
+- name: Remove Entry in fstab for /mnt/var/log
+  # State unmounted does not remove fstab Entry
+  mount:
+    name: "/mnt/var/log"
+    src:  "/dev/{{ aop_vg_name }}/var+log"
+    fstype: "ext4"
+    opts: "defaults"
+    passno: "2"
+    state: "absent"
+  changed_when: False
+
+# # TODO
+# - meta: flush_handlers

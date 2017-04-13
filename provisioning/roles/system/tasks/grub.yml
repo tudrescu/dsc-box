@@ -1,0 +1,17 @@
+---
+
+- name: Configure Grub
+  template:
+    src:  etc/default/grub.j2
+    dest: /etc/default/grub
+    mode: 0644
+  register: conf_grub
+  notify:
+    - Restart server
+    - Wait for server to restart
+
+
+- name: Update Grub
+  command: /usr/sbin/update-grub
+  when: conf_grub|changed
+  changed_when: false

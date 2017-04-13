@@ -1,0 +1,8 @@
+---
+
+- name: ensure apt-transport-https installed
+  apt:
+    pkg: apt-transport-https
+    state: present
+  environment:
+    "{{ proxy_env }}"      

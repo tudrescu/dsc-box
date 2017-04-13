@@ -1,0 +1,13 @@
+---
+
+maven_version: "3.1.1"
+
+maven_distribution: "tar.gz"
+
+maven_url: "http://www.apache.org/dist/maven/maven-3/{{ maven_version }}/binaries/apache-maven-{{ maven_version }}-bin.{{ maven_distribution }}"
+
+maven_prefix: "/opt/abm"
+maven_dir: "{{ maven_prefix }}/apache-maven-{{ maven_version }}"
+
+maven_user: "vagrant"
+maven_group: "vagrant"
