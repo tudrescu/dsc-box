@@ -1,13 +1,1 @@
-This system includes Software from AB+M GmbH, Karlsruhe under /opt/abm. The Logfiles 
-are stored under /var/log/abm/logfiles. Please use always user 'abmadmin' 
-to manage the AB+M System.
-
-               _____     ____ ____      ____   _____
-              /     \    |   ||   |    /    \ /     \
-             /\      \   |   ||  ,'   .\-|-  \\      \
-            / \\      \  |   ||  '.  / \\     \\      \
-           /   \\      \ |   ||    | |  \\     \\      \
-          /     \\      \    ||    | |   \\     \\      \
-         /_______\\______\ __||____' '____\\_____\\______\
-
 
