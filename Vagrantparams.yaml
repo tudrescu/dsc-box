@@ -3,7 +3,7 @@ vm_cpus: "2"
 vm_memory: "4096"
 
 vm_base_box: "aop"
-vm_base_box_url: "http://persephone.abm-local.de:4300/vagrant/aop/metadata.json"
+vm_base_box_url: "http://example.com/vagrant/boxname/metadata.json"
 vm_base_box_version: "1.4.0"
 
 install_vagrant_plugins: true      # try to install vagrant plugins automatically
@@ -22,18 +22,13 @@ use_proxy: true
 
 # Defaults to ENV['http_proxy'], ENV['https_proxy'], ENV['no_proxy'] if not explicitly specified
 #
-# config_proxy_http: "http://proxy.abm-local.de:800"
-# config_proxy_https: "http://proxy.abm-local.de:800"
-# config_no_proxy: "localhost,127.0.0.1,.abm-local.de"
+# config_proxy_http: "http://proxy.example.com:800"
+# config_proxy_https: "http://proxy.example.com:800"
+# config_no_proxy: "localhost,127.0.0.1,.example.com"
 
 
 # Port mapping Guest <-> Host
 vm_forwarded_ports:
-    - { guest: 443,  host: 40443, description: "Apache2 https service" }
-    - { guest: 3306, host: 43306, description: "MySQL port" }
-    - { guest: 9999, host: 9999, description: "JMX" }
-    - { guest: 18888, host: 18888, description: "Jolokia port" }
-    - { guest: 9001, host: 49001, description: "Frontail - log streaming in browser" }
     # - { guest: 80, host: 40080, description: "Apache2 http service"}
 
 
@@ -49,21 +44,7 @@ vm_synced_folders:
 #    vagrant reload --provision-with "ondemand-provisioner"
 #
 # All other provisioners are run once when vagrant up/destroy are called.
-vm_provisioners:
-
-    - name: "bootstrap-provisioner"                   # reconfigure base box
-      type: "bootstrap"
-      main_playbook: "deploy.yml"
-      ansible_tags:
-           - apache-reconfiguration
-
-
-    # aop deploy provisioner
-    - name: "ondemand-provisioner"
-      type: "ondemand"
-      main_playbook: "deploy.yml"
-      ansible_tags:
-           - aop-deployment                           # Actual AOP deployment
+vm_provisioners: []
 
 
 # Overwrite defaults in Ansible roles. The variable will be passed on to all
