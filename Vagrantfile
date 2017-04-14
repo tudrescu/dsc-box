@@ -13,6 +13,7 @@ DEFAULT_BOX = "ubuntu/trusty64"
 DEFAULT_CONFIG = "Vagrantparams.yaml"
 
 DEFAULT_SECOND_DISK_NAME = "second.vdi"
+DEFAULT_DOMAIN_NAME = ".example.com"
 
 # default main playbook to run by the bootstrap provisioner
 DEFAULT_MAIN_PLAYBOOK = "main.yml"
@@ -150,7 +151,7 @@ end
 
 # Extract DN and HTTPS forwarded port for VM Host for passing to provisioner ---
 vm_host_name = Socket.gethostbyname(Socket.gethostname).first.downcase
-vm_host_name = vm_host_name.sub(/.abm-local.de/, '')
+vm_host_name = vm_host_name.sub(/#{Regexp.escape(DEFAULT_DOMAIN_NAME)}/, '')
 puts "VM Host: #{vm_host_name}"
 
 service_id, service_props = vm_forwarded_ports.select { |key, value| key.to_s.match(/.*https service/) }.first
