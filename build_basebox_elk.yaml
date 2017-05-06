@@ -63,7 +63,6 @@ vm_provisioners:
       ansible_tags:
            - common                                   # common dependencies
            - filesystem                               # LVM partitioning
-           - system                                   # System Hardening
 
 
     # reboot vm
@@ -76,7 +75,6 @@ vm_provisioners:
       type: "bootstrap"
       main_playbook: "main.yml"
       ansible_tags:
-           - dbserver                                 # Percona, db users, db permissions
            - java                                     # Oracle Java
            - maven                                    # Maven installation
 
