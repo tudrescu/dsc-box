@@ -2,9 +2,9 @@
 vm_cpus: "2"
 vm_memory: "4096"
 
-vm_base_box: "aop"
-vm_base_box_url: "http://example.com/vagrant/boxname/metadata.json"
-vm_base_box_version: "1.4.0"
+vm_base_box: "ubuntu/trusty64"
+# vm_base_box_url: "http://example.com/vagrant/boxname/metadata.json"
+# vm_base_box_version: "1.4.0"
 
 install_vagrant_plugins: true      # try to install vagrant plugins automatically
                                    # Bug: Ubuntu 16.04 can not use the vagrant-proxyconf plugin.
